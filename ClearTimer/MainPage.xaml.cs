@@ -57,7 +57,6 @@ namespace ClearTimer
 
             DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
 
-            // Встановлюємо початкове значення при запуску
             UpdateOrientationLayout();
 
             //UpdateTimerLabel();
