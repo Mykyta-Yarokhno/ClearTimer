@@ -72,6 +72,7 @@ namespace ClearTimer
 
 
             DeviceDisplay.KeepScreenOn = true;
+
         }
 
         private void OnMainDisplayInfoChanged(object sender, DisplayInfoChangedEventArgs e)
