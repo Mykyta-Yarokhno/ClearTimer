@@ -3,75 +3,55 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ClearTimer.MainPage"
              Title=""
-             BackgroundColor="LightBlue">
+             BackgroundColor="#121212">
 
-    <Grid RowDefinitions="Auto,*" Padding="20">
+    <Grid x:Name="MainGrid" Padding="20">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup Name="LayoutStates">
+                <VisualState Name="PortraitLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter TargetName="PortraitContainer" Property="IsVisible" Value="True" />
+                        <Setter TargetName="LandscapeContainer" Property="IsVisible" Value="False" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState Name="LandscapeLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="600" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter TargetName="PortraitContainer" Property="IsVisible" Value="False" />
+                        <Setter TargetName="LandscapeContainer" Property="IsVisible" Value="True" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
 
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Padding="0,10">
-            <Grid Grid.Column="0"
-                  ColumnDefinitions="Auto,*,Auto"
-                  HorizontalOptions="Center"
-                  VerticalOptions="Center"
-                  Margin="0,0,10,0">
-                <Grid.GestureRecognizers>
-                    <PanGestureRecognizer PanUpdated="OnModePanUpdated"/>
-                </Grid.GestureRecognizers>
+        <Grid x:Name="PortraitContainer" IsVisible="True" HorizontalOptions="Center" VerticalOptions="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-                <Label x:Name="LeftArrowLabel"
-                       Text="◀"
-                       FontSize="26"
-                       TextColor="#03DAC5"
-                       VerticalOptions="Center"
-                       Grid.Column="0"
-                       IsVisible="False"
-                       Margin="0,0,10,0"/>
-
-                <Label x:Name="ModeLabel"
-                       Text="TIMER"
-                       FontSize="28"
-                       FontAttributes="Bold"
-                       TextColor="White"
-                       VerticalOptions="Center"
-                       HorizontalOptions="Center"
-                       Grid.Column="1"/>
-
-                <Label x:Name="RightArrowLabel"
-                       Text="▶"
-                       FontSize="26"
-                       TextColor="#03DAC5"
-                       VerticalOptions="Center"
-                       Grid.Column="2"
-                       IsVisible="False"
-                       Margin="10,0,0,0"/>
-            </Grid>
-
-            <ImageButton Source="dotnet_bot.png"
-                         WidthRequest="32"
-                         HeightRequest="32"
-                         BackgroundColor="Transparent"
-                         HorizontalOptions="End"
-                         VerticalOptions="Center"
-                         Clicked="OnSettingsClicked"
-                         Grid.Column="1"/>
-        </Grid>
-
-        <VerticalStackLayout Grid.Row="1" Spacing="50" VerticalOptions="Center" Margin="0,-30,0,-30">
-            <VerticalStackLayout Spacing="30" VerticalOptions="Center" HorizontalOptions="CenterAndExpand">
-
+            <VerticalStackLayout Grid.Row="0" Spacing="30" VerticalOptions="Center" HorizontalOptions="CenterAndExpand">
                 <Grid HeightRequest="60">
                     <Label x:Name="RepeatLabel"
                            Text="0"
                            FontSize="48"
                            FontAttributes="Bold"
-                           TextColor="White"
+                           TextColor="#444444"
                            HorizontalOptions="Center"
-                           VerticalOptions="Center"
-                           IsVisible="False"/>
-
+                           VerticalOptions="Center"/>
                     <Button x:Name="SetTimeButton"
                             Text="Set break"
-                            BackgroundColor="#03DAC5"
-                            TextColor="Black"
+                            BackgroundColor="#444444"
+                            TextColor="#FFFFFF"
                             FontSize="20"
                             HorizontalOptions="Center"
                             VerticalOptions="Center"
@@ -79,10 +59,10 @@
                             WidthRequest="180"
                             HeightRequest="60"
                             IsVisible="False"
-                            Clicked="OnSetTimeClicked" />
+                            Clicked="OnSetTimeClicked"/>
                 </Grid>
-
                 <Grid x:Name="TimerContainer"
+                      Grid.Row="1"
                       HeightRequest="300"
                       WidthRequest="300"
                       HorizontalOptions="Center"
@@ -92,43 +72,287 @@
                         <PanGestureRecognizer PanUpdated="OnTimerPanUpdated"/>
                     </Grid.GestureRecognizers>
 
-                    <Ellipse Stroke="#03DAC5"
-                             StrokeThickness="20"
-                             Fill="#1E1E1E"/>
+                    <Ellipse Fill="#222222"/>
 
-                    <Label x:Name="TimerLabel"
-                           Text="00:00"
+                    <Grid x:Name="AnimatedDigitsContainer"
+                          HorizontalOptions="Center"
+                          VerticalOptions="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="60" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Column="0">
+                            <Grid.Clip>
+                                <RectangleGeometry Rect="0,0,60,150" />
+                            </Grid.Clip>
+                            <Label x:Name="CurrentMinTens" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Margin="0,0,0,0" />
+                            <Label x:Name="NextMinTens" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Opacity="0" TranslationY="150" Margin="0,0,0,0"/>
+                        </Grid>
+                        <Grid Grid.Column="1">
+                            <Grid.Clip>
+                                <RectangleGeometry Rect="0,0,60,150" />
+                            </Grid.Clip>
+                            <Label x:Name="CurrentMinOnes" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Margin="0,0,0,0" />
+                            <Label x:Name="NextMinOnes" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Opacity="0" TranslationY="150" Margin="0,0,0,0"/>
+                        </Grid>
+                        <Grid Grid.Column="2">
+                            <Label Text=":" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Margin="0,-15,0,0" VerticalOptions="Center" HorizontalOptions="Center"/>
+                        </Grid>
+                        <Grid Grid.Column="3">
+                            <Grid.Clip>
+                                <RectangleGeometry Rect="0,0,60,150" />
+                            </Grid.Clip>
+                            <Label x:Name="CurrentSecTens" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Margin="0,0,0,0" />
+                            <Label x:Name="NextSecTens" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Opacity="0" TranslationY="150" Margin="0,0,0,0"/>
+                        </Grid>
+                        <Grid Grid.Column="4">
+                            <Grid.Clip>
+                                <RectangleGeometry Rect="0,0,60,150" />
+                            </Grid.Clip>
+                            <Label x:Name="CurrentSecOnes" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Margin="0,0,0,0" />
+                            <Label x:Name="NextSecOnes" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Opacity="0" TranslationY="150" Margin="0,0,0,0"/>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </VerticalStackLayout>
+            <HorizontalStackLayout x:Name="ButtonsLayout" Grid.Row="2" HorizontalOptions="Center" Spacing="40" Padding="0,20" Margin="0,50,0,0">
+                <Border WidthRequest="100"
+                        HeightRequest="70"
+                        BackgroundColor="#444444"
+                        Stroke="#444444"
+                        StrokeShape="RoundRectangle 35"
+                        x:Name="StartButtonBorder">
+                    <ImageButton x:Name="StartButton"
+                                 Source="play_6874042.png"
+                                 WidthRequest="40"
+                                 HeightRequest="40"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 BackgroundColor="Transparent"
+                                 Aspect="AspectFit"
+                                 Clicked="OnStartClicked">
+                        <ImageButton.Triggers>
+                            <Trigger TargetType="ImageButton" Property="IsPressed" Value="True">
+                                <Setter TargetName="StartButtonBorder" Property="BackgroundColor" Value="#666666" />
+                                <Setter Property="BackgroundColor" Value="Transparent"/>
+                            </Trigger>
+                        </ImageButton.Triggers>
+                    </ImageButton>
+                </Border>
+                <Border WidthRequest="70"
+                        HeightRequest="70"
+                        BackgroundColor="#444444"
+                        Stroke="#444444"
+                        StrokeShape="RoundRectangle 35"
+                        IsVisible="False"
+                        x:Name="PauseButtonBorder">
+                    <ImageButton x:Name="PauseButton"
+                                 Source="pause_11434876.png"
+                                 WidthRequest="40"
+                                 HeightRequest="40"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 BackgroundColor="Transparent"
+                                 Aspect="AspectFit"
+                                 Clicked="OnPauseClicked">
+                        <ImageButton.Triggers>
+                            <Trigger TargetType="ImageButton" Property="IsPressed" Value="True">
+                                <Setter TargetName="PauseButtonBorder" Property="BackgroundColor" Value="#666666" />
+                            </Trigger>
+                        </ImageButton.Triggers>
+                    </ImageButton>
+                </Border>
+                <Border WidthRequest="70"
+                        HeightRequest="70"
+                        BackgroundColor="#444444"
+                        Stroke="#444444"
+                        StrokeShape="RoundRectangle 35"
+                        IsVisible="False"
+                        x:Name="StopButtonBorder">
+                    <ImageButton x:Name="StopButton"
+                                 Source="undo_12648978.png"
+                                 WidthRequest="40"
+                                 HeightRequest="40"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 BackgroundColor="Transparent"
+                                 Aspect="AspectFit"
+                                 Clicked="OnResetClicked">
+                        <ImageButton.Triggers>
+                            <Trigger TargetType="ImageButton" Property="IsPressed" Value="True">
+                                <Setter TargetName="StopButtonBorder" Property="BackgroundColor" Value="#666666" />
+                            </Trigger>
+                        </ImageButton.Triggers>
+                    </ImageButton>
+                </Border>
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid x:Name="LandscapeContainer" IsVisible="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <VerticalStackLayout Grid.Column="0" Spacing="30" VerticalOptions="Center" HorizontalOptions="CenterAndExpand">
+                <Grid HeightRequest="60">
+                    <Label Text="{Binding Source={x:Reference RepeatLabel}, Path=Text}"
                            FontSize="48"
                            FontAttributes="Bold"
-                           TextColor="White"
+                           TextColor="#444444"
                            HorizontalOptions="Center"
                            VerticalOptions="Center"/>
+                    <Button Text="{Binding Source={x:Reference SetTimeButton}, Path=Text}"
+                            BackgroundColor="#444444"
+                            TextColor="#FFFFFF"
+                            FontSize="20"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"
+                            CornerRadius="30"
+                            WidthRequest="180"
+                            HeightRequest="60"
+                            IsVisible="{Binding Source={x:Reference SetTimeButton}, Path=IsVisible}"
+                            Clicked="OnSetTimeClicked"/>
                 </Grid>
-
             </VerticalStackLayout>
 
-            <HorizontalStackLayout HorizontalOptions="Center" Spacing="40" Padding="0,20">
-                <ImageButton x:Name="StartButton"
-                             Source="play_arrow.png"
-                             WidthRequest="70"
-                             HeightRequest="70"
-                             BackgroundColor="Transparent"
-                             Clicked="OnStartClicked"/>
-                <ImageButton x:Name="PauseButton"
-                             Source="dotnet_bot.png"
-                             WidthRequest="70"
-                             HeightRequest="70"
-                             BackgroundColor="Transparent"
-                             IsVisible="False"
-                             Clicked="OnPauseClicked"/>
-                <ImageButton x:Name="StopButton"
-                             Source="dotnet_bot.png"
-                             WidthRequest="70"
-                             HeightRequest="70"
-                             BackgroundColor="Transparent"
-                             IsVisible="False"
-                             Clicked="OnResetClicked"/>
-            </HorizontalStackLayout>
-        </VerticalStackLayout>
+            <Grid Grid.Column="1"
+                  HeightRequest="300"
+                  WidthRequest="300"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Grid.GestureRecognizers>
+                    <PanGestureRecognizer PanUpdated="OnTimerPanUpdated"/>
+                </Grid.GestureRecognizers>
+                <Ellipse Fill="#222222"/>
+
+                <Grid x:Name="LandscapeAnimatedDigitsContainer"
+                      HorizontalOptions="Center"
+                      VerticalOptions="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="30" />
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="60" />
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0">
+                        <Grid.Clip>
+                            <RectangleGeometry Rect="0,0,60,150" />
+                        </Grid.Clip>
+                        <Label x:Name="LandscapeCurrentMinTens" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Margin="0,0,0,0" />
+                        <Label x:Name="LandscapeNextMinTens" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Opacity="0" TranslationY="150" Margin="0,0,0,0"/>
+                    </Grid>
+                    <Grid Grid.Column="1">
+                        <Grid.Clip>
+                            <RectangleGeometry Rect="0,0,60,150" />
+                        </Grid.Clip>
+                        <Label x:Name="LandscapeCurrentMinOnes" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Margin="0,0,0,0" />
+                        <Label x:Name="LandscapeNextMinOnes" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Opacity="0" TranslationY="150" Margin="0,0,0,0"/>
+                    </Grid>
+                    <Grid Grid.Column="2">
+                        <Label Text=":" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Margin="0,-10,0,0" />
+                    </Grid>
+                    <Grid Grid.Column="3">
+                        <Grid.Clip>
+                            <RectangleGeometry Rect="0,0,60,150" />
+                        </Grid.Clip>
+                        <Label x:Name="LandscapeCurrentSecTens" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Margin="0,0,0,0" />
+                        <Label x:Name="LandscapeNextSecTens" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Opacity="0" TranslationY="150" Margin="0,0,0,0"/>
+                    </Grid>
+                    <Grid Grid.Column="4">
+                        <Grid.Clip>
+                            <RectangleGeometry Rect="0,0,60,150" />
+                        </Grid.Clip>
+                        <Label x:Name="LandscapeCurrentSecOnes" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Margin="0,0,0,0" />
+                        <Label x:Name="LandscapeNextSecOnes" Text="0" FontSize="100" FontAttributes="Bold" TextColor="#FFFFFF" Opacity="0" TranslationY="150" Margin="0,0,0,0"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+            <VerticalStackLayout Grid.Column="2" Spacing="40" VerticalOptions="Center" HorizontalOptions="Center" >
+                <Border WidthRequest="{Binding Source={x:Reference StartButtonBorder}, Path=WidthRequest}"
+        HeightRequest="{Binding Source={x:Reference StartButtonBorder}, Path=HeightRequest}"
+        BackgroundColor="#444444"
+        Stroke="#444444"
+        StrokeShape="RoundRectangle 35"
+        IsVisible="{Binding Source={x:Reference StartButtonBorder}, Path=IsVisible}"
+        x:Name="LandscapeStartButtonBorder">
+                    <ImageButton Source="play_6874042.png"
+                 WidthRequest="40"
+                 HeightRequest="40"
+                 HorizontalOptions="Center"
+                 VerticalOptions="Center"
+                 BackgroundColor="Transparent"
+                 Aspect="AspectFit"
+                 Clicked="OnStartClicked"
+                 x:Name="LandscapeStartButton">
+                        <ImageButton.Triggers>
+                            <Trigger TargetType="ImageButton" Property="IsPressed" Value="True">
+                                <Setter Property="BackgroundColor" Value="Transparent" />
+                                <Setter TargetName="LandscapeStartButtonBorder" Property="BackgroundColor" Value="#666666" />
+                            </Trigger>
+                        </ImageButton.Triggers>
+                    </ImageButton>
+                </Border>
+
+                <Border WidthRequest="{Binding Source={x:Reference PauseButtonBorder}, Path=WidthRequest}"
+        HeightRequest="{Binding Source={x:Reference PauseButtonBorder}, Path=HeightRequest}"
+        BackgroundColor="#444444"
+        Stroke="#444444"
+        StrokeShape="RoundRectangle 35"
+        IsVisible="{Binding Source={x:Reference PauseButtonBorder}, Path=IsVisible}"
+        x:Name="LandscapePauseButtonBorder">
+                    <ImageButton Source="pause_11434876.png"
+                 WidthRequest="40"
+                 HeightRequest="40"
+                 HorizontalOptions="Center"
+                 VerticalOptions="Center"
+                 BackgroundColor="Transparent"
+                 Aspect="AspectFit"
+                 Clicked="OnPauseClicked"
+                 x:Name="LandscapePauseButton">
+                        <ImageButton.Triggers>
+                            <Trigger TargetType="ImageButton" Property="IsPressed" Value="True">
+                                <Setter Property="BackgroundColor" Value="Transparent" />
+                                <Setter TargetName="LandscapePauseButtonBorder" Property="BackgroundColor" Value="#666666" />
+                            </Trigger>
+                        </ImageButton.Triggers>
+                    </ImageButton>
+                </Border>
+
+                <Border WidthRequest="{Binding Source={x:Reference StopButtonBorder}, Path=WidthRequest}"
+        HeightRequest="{Binding Source={x:Reference StopButtonBorder}, Path=HeightRequest}"
+        BackgroundColor="#444444"
+        Stroke="#444444"
+        StrokeShape="RoundRectangle 35"
+        IsVisible="{Binding Source={x:Reference StopButtonBorder}, Path=IsVisible}"
+        x:Name="LandscapeStopButtonBorder">
+                    <ImageButton Source="undo_12648978.png"
+                 WidthRequest="40"
+                 HeightRequest="40"
+                 HorizontalOptions="Center"
+                 VerticalOptions="Center"
+                 BackgroundColor="Transparent"
+                 Aspect="AspectFit"
+                 Clicked="OnResetClicked"
+                 x:Name="LandscapeStopButton">
+                        <ImageButton.Triggers>
+                            <Trigger TargetType="ImageButton" Property="IsPressed" Value="True">
+                                <Setter Property="BackgroundColor" Value="Transparent" />
+                                <Setter TargetName="LandscapeStopButtonBorder" Property="BackgroundColor" Value="#666666" />
+                            </Trigger>
+                        </ImageButton.Triggers>
+                    </ImageButton>
+                </Border>
+            </VerticalStackLayout>
+        </Grid>
     </Grid>
 </ContentPage>

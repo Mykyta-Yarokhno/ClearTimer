@@ -50,19 +50,21 @@
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+    <MauiAsset Include="Resources\Raw\lo-fi-piano-amp-guitar-strum-358389.mp3" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="12.2.0" />
+		<PackageReference Include="CommunityToolkit.Maui.Core" Version="12.2.0" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.100" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+		<PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
 	</ItemGroup>
 
 </Project>
