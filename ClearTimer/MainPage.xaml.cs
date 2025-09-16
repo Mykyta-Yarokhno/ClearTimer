@@ -22,20 +22,18 @@ namespace ClearTimer
         private bool _isRunning;
         private int _totalSeconds;
 
-        // Змінні для Interval Timer
         private TimerMode _currentMode;
         private bool _isWorkTime = true;
         private int _workTimeInSeconds = 0;
         private int _breakTimeInSeconds = 0;
-        private int _currentCycle = 0;
+        private int _currentCycle = 1;
 
-        // Змінні для Pan Gesture перемикання
-        private double _lastPanX = 0;
-        private double _modeLastPanX = 0;
-        private bool _hasSwiped = false;
+        private TimeSpan _totalTimeElapsed = TimeSpan.Zero;
 
+        private double _lastPanX = 0;
         private string _previousTimeText = "00:00";
-        private bool _isLandscape;
+
+        private bool _isLandscape;
 
         public MainPage()
         {
@@ -59,25 +57,18 @@ namespace ClearTimer
 
             UpdateOrientationLayout();
 
-            //UpdateTimerLabel();
             UpdateTimerLabelsForOrientation();
 
-            // Видаляємо виклик UpdateModeUI(), оскільки режими не перемикаються
-            // UpdateModeUI();
-
-            var audioManager = AudioManager.Current;
-            var audioStream = FileSystem.OpenAppPackageFileAsync("lo-fi-piano-amp-guitar-strum-358389.mp3");
+            var audioManager = AudioManager.Current;
+            var audioStream = FileSystem.OpenAppPackageFileAsync("tonal-fountain-sound-effect-241390.mp3");
             _audioPlayer = audioManager.CreatePlayer(audioStream.Result);
 
-
             DeviceDisplay.KeepScreenOn = true;
-
         }
 
         private void OnMainDisplayInfoChanged(object sender, DisplayInfoChangedEventArgs e)
         {
             _isLandscape = e.DisplayInfo.Orientation == DisplayOrientation.Landscape;
-
             UpdateOrientationLayout();
         }
 
@@ -85,17 +76,14 @@ namespace ClearTimer
         {
             PortraitContainer.IsVisible = !_isLandscape;
             LandscapeContainer.IsVisible = _isLandscape;
-
             UpdateTimerLabelsForOrientation();
         }
 
         protected override void OnSizeAllocated(double width, double height)
         {
             base.OnSizeAllocated(width, height);
-
             double minDimension = Math.Min(width, height);
             double containerSize = minDimension * 0.9;
-
             TimerContainer.WidthRequest = containerSize;
             TimerContainer.HeightRequest = containerSize;
 
@@ -113,9 +101,10 @@ namespace ClearTimer
         {
             if (!_isRunning) return;
 
-            // if (_currentMode == TimerMode.IntervalTimer)
-            // {
             _totalSeconds--;
+
+            _totalTimeElapsed = _totalTimeElapsed.Add(TimeSpan.FromSeconds(1));
+            UpdateTotalTimeLabel();
 
             if (_totalSeconds <= 0)
             {
@@ -130,42 +119,19 @@ namespace ClearTimer
                     {
                         _isWorkTime = false;
                         _totalSeconds = _breakTimeInSeconds;
-                        UpdateTimerLabelsForOrientation();
                     }
                     else
                     {
                         _isWorkTime = true;
                         _totalSeconds = _workTimeInSeconds;
-                        UpdateTimerLabelsForOrientation();
                     }
                 }
                 else
                 {
                     _isWorkTime = true;
                     _totalSeconds = _workTimeInSeconds;
-                    UpdateTimerLabelsForOrientation();
                 }
             }
-            // }
-            // else
-            // {
-            //     if (_currentMode == TimerMode.Timer)
-            //     {
-            //         _totalSeconds--;
-            //         if (_totalSeconds <= 0)
-            //         {
-            //             PlaySound();
-            //             _timer.Stop();
-            //             _isRunning = false;
-            //             _totalSeconds = 0;
-            //             ShowButtons(true, false, false);
-            //         }
-            //     }
-            //     else if (_currentMode == TimerMode.Stopwatch)
-            //     {
-            //         _totalSeconds++;
-            //     }
-            // }
 
             UpdateTimerLabelsForOrientation();
         }
@@ -195,10 +161,8 @@ namespace ClearTimer
                 }
 
                 UpdateTimerLabelsForOrientation();
-                // UpdateModeUI();
                 StartButtonBorder.WidthRequest = 70;
                 StartButtonBorder.HeightRequest = 70;
-                //ShowButtons(false, true, true);
                 await AnimateStartToPauseAndReset();
             }
         }
@@ -209,21 +173,21 @@ namespace ClearTimer
             _timer.Stop();
             _totalSeconds = 0;
             _isWorkTime = true;
-            _currentCycle = 0;
-            RepeatLabel.Text = "0";
+            _currentCycle = 1;
+            RepeatLabel.Text = "1";
 
             _workTimeInSeconds = 0;
             _breakTimeInSeconds = 0;
             SetTimeButton.Text = "Set break";
+
+            _totalTimeElapsed = TimeSpan.Zero;
+            UpdateTotalTimeLabel();
 
             await AnimatePauseAndResetToStart();
 
             UpdateTimerLabelsForOrientation();
             StartButtonBorder.WidthRequest = 100;
             StartButtonBorder.HeightRequest = 70;
-            //ShowButtons(true, false, false);
-
-            // UpdateModeUI();
         }
 
         private async void OnPauseClicked(object sender, EventArgs e)
@@ -232,8 +196,6 @@ namespace ClearTimer
 
             _isRunning = false;
             _timer.Stop();
-
-            //ShowButtons(true, false, true);
 
             await AnimatePauseToResumeAndReset();
         }
@@ -254,99 +216,6 @@ namespace ClearTimer
             }
             UpdateTimerLabelsForOrientation();
         }
-
-        // Закоментовані методи для перемикання режимів
-        // private void OnModePanUpdated(object sender, PanUpdatedEventArgs e)
-        // {
-        //     if (_isRunning) return;
-        //     switch (e.StatusType)
-        //     {
-        //         case GestureStatus.Started:
-        //             _modeLastPanX = e.TotalX;
-        //             _hasSwiped = false;
-        //             break;
-        //         case GestureStatus.Running:
-        //             if (_hasSwiped) return;
-        //             double deltaX = e.TotalX - _modeLastPanX;
-        //             int changeFactor = 50;
-        //             if (Math.Abs(deltaX) >= changeFactor)
-        //             {
-        //                 if (deltaX > 0)
-        //                 {
-        //                     SwitchMode(1);
-        //                 }
-        //                 else
-        //                 {
-        //                     SwitchMode(-1);
-        //                 }
-        //                 _hasSwiped = true;
-        //                 _modeLastPanX = e.TotalX;
-        //             }
-        //             break;
-        //         case GestureStatus.Completed:
-        //             _modeLastPanX = 0;
-        //             break;
-        //     }
-        // }
-        // private void SwitchMode(int direction)
-        // {
-        //     if (_currentMode == TimerMode.Timer && direction < 0)
-        //     {
-        //         _currentMode = TimerMode.IntervalTimer;
-        //     }
-        //     else if (_currentMode == TimerMode.IntervalTimer)
-        //     {
-        //         if (direction < 0)
-        //         {
-        //             _currentMode = TimerMode.Stopwatch;
-        //         }
-        //         else
-        //         {
-        //             _currentMode = TimerMode.Timer;
-        //         }
-        //     }
-        //     else if (_currentMode == TimerMode.Stopwatch && direction > 0)
-        //     {
-        //         _currentMode = TimerMode.IntervalTimer;
-        //     }
-        //     OnResetClicked(this, EventArgs.Empty);
-        //     UpdateModeUI();
-        // }
-        // private void UpdateModeUI()
-        // {
-        //     switch (_currentMode)
-        //     {
-        //         case TimerMode.Timer:
-        //             ModeLabel.Text = "TIMER";
-        //             LeftArrowLabel.IsVisible = true;
-        //             RightArrowLabel.IsVisible = false;
-        //             RepeatLabel.IsVisible = false;
-        //             SetTimeButton.IsVisible = false;
-        //             break;
-        //         case TimerMode.IntervalTimer:
-        //             ModeLabel.Text = "INTERVAL TIMER";
-        //             LeftArrowLabel.IsVisible = true;
-        //             RightArrowLabel.IsVisible = true;
-        //             if (!_isRunning)
-        //             {
-        //                 SetTimeButton.IsVisible = true;
-        //                 RepeatLabel.IsVisible = false;
-        //             }
-        //             else
-        //             {
-        //                 SetTimeButton.IsVisible = false;
-        //                 RepeatLabel.IsVisible = true;
-        //             }
-        //             break;
-        //         case TimerMode.Stopwatch:
-        //             ModeLabel.Text = "STOPWATCH";
-        //             LeftArrowLabel.IsVisible = false;
-        //             RightArrowLabel.IsVisible = true;
-        //             RepeatLabel.IsVisible = false;
-        //             SetTimeButton.IsVisible = false;
-        //             break;
-        //     }
-        // }
 
         private void OnTimerPanUpdated(object sender, PanUpdatedEventArgs e)
         {
@@ -384,16 +253,14 @@ namespace ClearTimer
 
         private void UpdateTimerLabelsForOrientation()
         {
-            // Отримуємо поточний час
-            TimeSpan time = TimeSpan.FromSeconds(_totalSeconds);
+            TimeSpan time = TimeSpan.FromSeconds(_totalSeconds);
             string newTimeText = time.ToString(@"mm\:ss");
 
-            // Визначаємо, які Label використовувати
-            Label currentMinTens, currentMinOnes, currentSecTens, currentSecOnes;
+            Label currentMinTens, currentMinOnes, currentSecTens, currentSecOnes;
             Label nextMinTens, nextMinOnes, nextSecTens, nextSecOnes;
 
-            if (_isLandscape) // Якщо орієнтація горизонтальна
-            {
+            if (_isLandscape)
+            {
                 currentMinTens = LandscapeCurrentMinTens;
                 currentMinOnes = LandscapeCurrentMinOnes;
                 currentSecTens = LandscapeCurrentSecTens;
@@ -403,8 +270,8 @@ namespace ClearTimer
                 nextSecTens = LandscapeNextSecTens;
                 nextSecOnes = LandscapeNextSecOnes;
             }
-            else // Якщо орієнтація вертикальна
-            {
+            else 
+            {
                 currentMinTens = CurrentMinTens;
                 currentMinOnes = CurrentMinOnes;
                 currentSecTens = CurrentSecTens;
@@ -415,8 +282,7 @@ namespace ClearTimer
                 nextSecOnes = NextSecOnes;
             }
 
-            // Запускаємо анімацію, використовуючи правильний набір Label
-            if (_isRunning)
+            if (_isRunning)
             {
                 if (_previousTimeText[4] != newTimeText[4]) AnimateDigit(currentSecOnes, nextSecOnes, newTimeText[4].ToString());
                 if (_previousTimeText[3] != newTimeText[3]) AnimateDigit(currentSecTens, nextSecTens, newTimeText[3].ToString());
@@ -434,29 +300,33 @@ namespace ClearTimer
             _previousTimeText = newTimeText;
         }
 
+        private void UpdateTotalTimeLabel()
+        {
+            TotalTimeLabel.Text = _totalTimeElapsed.ToString(@"hh\:mm\:ss");
+            if (LandscapeTotalTimeLabel != null)
+            {
+                LandscapeTotalTimeLabel.Text = _totalTimeElapsed.ToString(@"hh\:mm\:ss");
+            }
+        }
+
         private async void AnimateDigit(Label currentLabel, Label nextLabel, string newText)
         {
-            // Set the new digit's text and starting state
-            nextLabel.Text = newText;
+            nextLabel.Text = newText;
             nextLabel.Opacity = 0;
             nextLabel.TranslationY = 60;
 
-            // Define the animation durations
-            uint fadeDuration = 250; // Shorter duration for fading
-            uint moveDuration = 450; // Longer duration for moving
+            uint fadeDuration = 250;
+            uint moveDuration = 450;
 
-            await Task.WhenAll(
-                // The old digit "flies" away slowly but fades out quickly
+            await Task.WhenAll(
                 currentLabel.TranslateTo(0, -60, moveDuration, Easing.CubicIn),
-                currentLabel.FadeTo(0, fadeDuration),
+        currentLabel.FadeTo(0, fadeDuration),
 
-                // The new digit "flies" in smoothly and appears fully
                 nextLabel.TranslateTo(0, 0, moveDuration, Easing.CubicOut),
-                nextLabel.FadeTo(1, moveDuration)
-            );
+        nextLabel.FadeTo(1, moveDuration)
+      );
 
-            // Reset the labels to their starting states
-            currentLabel.Text = newText;
+            currentLabel.Text = newText;
             currentLabel.TranslationY = 0;
             currentLabel.Opacity = 1;
 
@@ -471,10 +341,6 @@ namespace ClearTimer
             StopButtonBorder.IsVisible = stopVisible;
         }
 
-        private void OnSettingsClicked(object sender, EventArgs e)
-        {
-            DisplayAlert("Settings", "Here will be ssetings", "OK");
-        }
 
         private void PlaySound()
         {
@@ -498,16 +364,16 @@ namespace ClearTimer
             await StartButtonBorder.ScaleTo(0, 60, Easing.CubicIn);
             ShowButtons(false, true, true);
             await Task.WhenAll(
-                PauseButtonBorder.ScaleTo(1, 60, Easing.CubicOut),
-                StopButtonBorder.ScaleTo(1, 60, Easing.CubicOut)
+              PauseButtonBorder.ScaleTo(1, 60, Easing.CubicOut),
+              StopButtonBorder.ScaleTo(1, 60, Easing.CubicOut)
             );
         }
 
         private async Task AnimatePauseAndResetToStart()
         {
             await Task.WhenAll(
-                PauseButtonBorder.ScaleTo(0, 60, Easing.CubicIn),
-                StopButtonBorder.ScaleTo(0, 60, Easing.CubicIn)
+              PauseButtonBorder.ScaleTo(0, 60, Easing.CubicIn),
+              StopButtonBorder.ScaleTo(0, 60, Easing.CubicIn)
             );
             ShowButtons(true, false, false);
             await StartButtonBorder.ScaleTo(1, 60, Easing.CubicOut);
@@ -520,8 +386,8 @@ namespace ClearTimer
             ShowButtons(true, false, true);
 
             await Task.WhenAll(
-                StartButtonBorder.ScaleTo(1, 60, Easing.CubicOut),
-                StopButtonBorder.ScaleTo(1, 60, Easing.CubicOut)
+              StartButtonBorder.ScaleTo(1, 60, Easing.CubicOut),
+              StopButtonBorder.ScaleTo(1, 60, Easing.CubicOut)
             );
         }
 
